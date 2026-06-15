@@ -2,6 +2,7 @@ import argparse
 import asyncio
 import os
 import shutil
+import signal
 
 from config import (
     CONCURRENT_REQUESTS,
@@ -16,6 +17,7 @@ from config import (
 from scrapers.ddg_scraper import get_result_urls_ddg
 from scrapers.google_scraper import get_result_urls_google
 from spiders.email_spider import EmailSpider
+from utils.csv_output import count_data_rows
 
 
 async def get_urls_for_query_async(query: str, engine: str, sem: asyncio.Semaphore) -> list[str]:
@@ -94,22 +96,50 @@ async def run(base_query: str | None, engine: str = "google", expand_locations: 
         print("No URLs found. Try --engine ddg if Google blocked the request.")
         return
 
-    print(f"\nStarting email spider on {len(all_urls)} URLs...")
+    query_label = base_query or ", ".join(DEFAULT_QUERIES[:2]) + ", ..."
+    existing = count_data_rows(OUTPUT_FILE)
+    print(f"\nOutput file: {os.path.abspath(OUTPUT_FILE)}")
+    print(f"Emails already in CSV: {existing}")
+    print(f"Starting email spider on {len(all_urls)} URLs...")
+    print("Tip: you can run a second terminal with the same --output; both append safely.\n")
+
     spider = EmailSpider(
         start_urls=all_urls,
         output_file=OUTPUT_FILE,
         crawldir=CRAWL_DIR,
         concurrent_requests=CONCURRENT_REQUESTS,
+        query_label=query_label,
     )
-    # Run the spider in a thread since it manages its own event loop internally via anyio
+
+    _sigint_count = 0
+    _original_sigint = signal.getsignal(signal.SIGINT)
+
+    def _handle_sigint(signum, frame):
+        nonlocal _sigint_count
+        _sigint_count += 1
+        if _sigint_count == 1:
+            print("\nCtrl+C — stopping gracefully (finishing active requests)...")
+            print("Press Ctrl+C again to force quit.")
+            spider.request_stop()
+        else:
+            print("\nForce quit.")
+            if _original_sigint not in (signal.SIG_DFL, signal.SIG_IGN):
+                signal.signal(signal.SIGINT, _original_sigint)
+            raise KeyboardInterrupt
+
+    signal.signal(signal.SIGINT, _handle_sigint)
+
     try:
         result = await asyncio.to_thread(spider.start)
     except KeyboardInterrupt:
-        print("\nStopping gracefully...")
-        print(f"Emails saved so far: {len(spider.saved_emails)}")
+        total = spider._csv_total_at_start + spider._session_saved
+        print(f"\nStopped. {spider._session_saved} new emails this run ({total} total in CSV).")
         return
+    finally:
+        signal.signal(signal.SIGINT, _original_sigint)
 
-    print(f"\nDone. {len(spider.saved_emails)} unique emails saved to:")
+    total = spider._csv_total_at_start + spider._session_saved
+    print(f"\nDone. {spider._session_saved} new emails this run ({total} total in CSV):")
     print(os.path.abspath(OUTPUT_FILE))
     print(f"Requests: {result.stats.requests_count}")
 

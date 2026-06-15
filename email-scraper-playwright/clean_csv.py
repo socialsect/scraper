@@ -2,6 +2,7 @@ import csv
 import os
 import shutil
 
+from utils.csv_output import is_query_marker_row
 from utils.email_regex import is_valid_email
 from spiders.email_spider import should_crawl
 from utils.dedup import deduplicate_items
@@ -31,6 +32,9 @@ def clean_emails_csv():
             total_count += 1
             email = row.get('email', '').strip().lower()
             source = row.get('source', '').strip()
+
+            if is_query_marker_row(row):
+                continue
 
             # Apply is_valid_email regex checks
             if not is_valid_email(email):

@@ -2,6 +2,7 @@ import csv
 import glob
 import os
 
+from utils.csv_output import is_query_marker_row
 from utils.dedup import deduplicate_items
 
 OUTPUT_DIR = "output"
@@ -31,7 +32,8 @@ def combine_csvs():
                 continue
             for row in reader:
                 email = (row.get("email") or "").strip().lower()
-                if email:
+                if not email or is_query_marker_row(row):
+                    continue
                     all_items.append(
                         {"email": email, "source": (row.get("source") or "").strip()}
                     )

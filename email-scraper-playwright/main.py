@@ -2,6 +2,7 @@ import argparse
 import asyncio
 import os
 import shutil
+import signal
 
 from config import (
     CRAWL_DIR,
@@ -18,6 +19,7 @@ from engine.playwright_pool import PlaywrightPool
 from scrapers.ddg_scraper import get_result_urls_ddg
 from scrapers.google_scraper_playwright import get_result_urls_google_parallel
 from scrapers.playwright_crawler import PlaywrightEmailCrawler
+from utils.csv_output import count_data_rows
 
 
 async def search_ddg_parallel(queries: list[str], pages: int) -> list[str]:
@@ -110,15 +112,43 @@ async def run(
 
     print(f"\nPhase 2: Email crawl — {crawl_workers} parallel browsers on {len(all_urls)} URLs")
 
+    query_label = base_query or ", ".join(DEFAULT_QUERIES[:2]) + ", ..."
+    existing = count_data_rows(OUTPUT_FILE)
+    print(f"Output file: {os.path.abspath(OUTPUT_FILE)}")
+    print(f"Emails already in CSV: {existing}")
+    print("Tip: you can run a second terminal with the same --output; both append safely.\n")
+
+    crawler_ref: PlaywrightEmailCrawler | None = None
+    _sigint_count = 0
+    _original_sigint = signal.getsignal(signal.SIGINT)
+
+    def _handle_sigint(signum, frame):
+        nonlocal _sigint_count
+        _sigint_count += 1
+        if _sigint_count == 1:
+            print("\nCtrl+C — stopping gracefully...")
+            if crawler_ref:
+                crawler_ref.request_stop()
+        else:
+            print("\nForce quit.")
+            raise KeyboardInterrupt
+
+    signal.signal(signal.SIGINT, _handle_sigint)
+
     async with PlaywrightPool(max_workers=crawl_workers, headless=PLAYWRIGHT_HEADLESS) as crawl_pool:
-        crawler = PlaywrightEmailCrawler(crawl_pool, OUTPUT_FILE)
+        crawler = PlaywrightEmailCrawler(crawl_pool, OUTPUT_FILE, query_label=query_label)
+        crawler_ref = crawler
         try:
             await crawler.crawl(all_urls)
         except KeyboardInterrupt:
-            print(f"\nStopped. Emails saved so far: {len(crawler.saved_emails)}")
+            total = crawler._csv_total_at_start + crawler._session_saved
+            print(f"\nStopped. {crawler._session_saved} new emails this run ({total} total in CSV).")
             return
+        finally:
+            signal.signal(signal.SIGINT, _original_sigint)
 
-    print(f"\nDone. {len(crawler.saved_emails)} unique emails saved to:")
+    total = crawler._csv_total_at_start + crawler._session_saved
+    print(f"\nDone. {crawler._session_saved} new emails this run ({total} total in CSV):")
     print(os.path.abspath(OUTPUT_FILE))
 
 
