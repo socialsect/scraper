@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Scraper - Dashboard</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111827;
+            --bg-tertiary: #1f2937;
+            --bg-card: #1a1f2e;
+            --border: #2d3748;
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --text-tertiary: #6b7280;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* Layout */
+        .app {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 16px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            margin-bottom: 32px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--accent);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-text {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .nav {
+            flex: 1;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            margin-bottom: 4px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: var(--bg-tertiary);
+            color: var(--accent);
+        }
+
+        .nav-item i {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Main Content */
+        .main {
+            flex: 1;
+            overflow: auto;
+            background: var(--bg-primary);
+        }
+
+        .header {
+            padding: 24px 32px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-secondary);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .header-subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .content {
+            padding: 32px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .stat-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-icon.purple {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--accent);
+        }
+
+        .stat-icon.green {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .stat-icon.blue {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--info);
+        }
+
+        .stat-icon.yellow {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .stat-change {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+        }
+
+        .stat-change.positive {
+            color: var(--success);
+        }
+
+        .stat-change.negative {
+            color: var(--danger);
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        input[type="text"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: var(--bg-secondary);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 16px;
+        }
+
+        .checkbox-wrapper:hover {
+            border-color: var(--accent);
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--accent);
+        }
+
+        .checkbox-wrapper label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: 500;
+            flex: 1;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: #059669;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: #dc2626;
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: var(--bg-secondary);
+            border-color: var(--text-tertiary);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Status badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge.running {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--info);
+        }
+
+        .badge.completed {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .badge.failed {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .badge.pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        /* Activity Log */
+        .activity-log {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 13px;
+        }
+
+        .log-entry {
+            padding: 8px 0;
+            color: var(--text-secondary);
+            display: flex;
+            gap: 12px;
+        }
+
+        .log-time {
+            color: var(--text-tertiary);
+            min-width: 60px;
+        }
+
+        .log-success { color: var(--success); }
+        .log-error { color: var(--danger); }
+        .log-info { color: var(--info); }
+        .log-warning { color: var(--warning); }
+
+        /* Empty States */
+        .empty-state {
+            text-align: center;
+            padding: 64px 32px;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 16px;
+            color: var(--text-tertiary);
+        }
+
+        .empty-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        /* Progress bar */
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            transition: width 0.3s ease;
+        }
+
+        /* Spinner */
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--bg-tertiary);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Utility */
+        .hidden {
+            display: none !important;
+        }
+
+        .text-secondary {
+            color: var(--text-secondary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 72px;
+            }
+            
+            .logo-text,
+            .nav-item span {
+                display: none;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i data-lucide="mail" stroke-width="2.5"></i>
+                </div>
+                <span class="logo-text">Email Scraper</span>
+            </div>
+
+            <nav class="nav">
+                <div class="nav-item active" data-page="dashboard">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="nav-item" data-page="new-job">
+                    <i data-lucide="plus-circle"></i>
+                    <span>New Job</span>
+                </div>
+                <div class="nav-item" data-page="history">
+                    <i data-lucide="history"></i>
+                    <span>History</span>
+                </div>
+                <div class="nav-item" data-page="settings">
+                    <i data-lucide="settings"></i>
+                    <span>Settings</span>
+                </div>
+            </nav>
+
+            <div class="nav-item" style="margin-top: auto;">
+                <i data-lucide="github"></i>
+                <span>GitHub</span>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main">
+            <header class="header">
+                <div class="header-top">
+                    <div class="header-title">
+                        <h1 id="page-title">Dashboard</h1>
+                        <p class="header-subtitle" id="page-subtitle">Monitor your scraping jobs in real-time</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary" onclick="checkHealth()">
+                            <i data-lucide="activity" width="16" height="16"></i>
+                            Health Check
+                        </button>
+                        <button class="btn btn-primary" onclick="navigateTo('new-job')">
+                            <i data-lucide="plus" width="16" height="16"></i>
+                            New Job
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content" id="main-content">
+                <!-- Content will be dynamically loaded -->
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // State
+        let currentPage = 'dashboard';
+        let currentJob = null;
+        let pollInterval = null;
+
+        // Navigation
+        document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+            item.addEventListener('click', () => {
+                const page = item.dataset.page;
+                navigateTo(page);
+            });
+        });
+
+        function navigateTo(page) {
+            currentPage = page;
+            
+            // Update nav
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`[data-page="${page}"]`)?.classList.add('active');
+
+            // Load page
+            switch(page) {
+                case 'dashboard':
+                    loadDashboard();
+                    break;
+                case 'new-job':
+                    loadNewJobForm();
+                    break;
+                case 'history':
+                    loadHistory();
+                    break;
+                case 'settings':
+                    loadSettings();
+                    break;
+            }
+
+            lucide.createIcons();
+        }
+
+        // Dashboard
+        function loadDashboard() {
+            document.getElementById('page-title').textContent = 'Dashboard';
+            document.getElementById('page-subtitle').textContent = 'Monitor your scraping jobs in real-time';
+
+            const html = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-label">Total Jobs</div>
+                                <div class="stat-value" id="stat-jobs">0</div>
+                                <div class="stat-change positive">
+                                    <i data-lucide="trending-up" width="14" height="14"></i>
+                                    <span>View all</span>
+                                </div>
+                            </div>
+                            <div class="stat-icon purple">
+                                <i data-lucide="briefcase" width="20" height="20"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-label">Emails Found</div>
+                                <div class="stat-value" id="stat-emails">0</div>
+                                <div class="stat-change positive">
+                                    <i data-lucide="trending-up" width="14" height="14"></i>
+                                    <span>All time</span>
+                                </div>
+                            </div>
+                            <div class="stat-icon green">
+                                <i data-lucide="mail" width="20" height="20"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-label">Pages Crawled</div>
+                                <div class="stat-value" id="stat-pages">0</div>
+                                <div class="stat-change">
+                                    <i data-lucide="globe" width="14" height="14"></i>
+                                    <span>Last 24h</span>
+                                </div>
+                            </div>
+                            <div class="stat-icon blue">
+                                <i data-lucide="file-text" width="20" height="20"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-label">Success Rate</div>
+                                <div class="stat-value" id="stat-rate">—</div>
+                                <div class="stat-change positive">
+                                    <i data-lucide="check-circle" width="14" height="14"></i>
+                                    <span>Healthy</span>
+                                </div>
+                            </div>
+                            <div class="stat-icon yellow">
+                                <i data-lucide="zap" width="20" height="20"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Active Jobs</h3>
+                    </div>
+                    <div id="active-jobs-list">
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i data-lucide="inbox" width="64" height="64"></i>
+                            </div>
+                            <h3 class="empty-title">No active jobs</h3>
+                            <p>Create a new job to start scraping emails</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('main-content').innerHTML = html;
+            lucide.createIcons();
+            loadDashboardData();
+        }
+
+        async function loadDashboardData() {
+            try {
+                const res = await fetch('/api/jobs');
+                const data = await res.json();
+                const jobs = data.jobs || [];
+                
+                // Update stats
+                document.getElementById('stat-jobs').textContent = jobs.length;
+                
+                const totalEmails = jobs.reduce((sum, j) => sum + (j.stats?.total_emails || 0), 0);
+                document.getElementById('stat-emails').textContent = totalEmails;
+                
+                const totalPages = jobs.reduce((sum, j) => sum + (j.stats?.pages_crawled || 0), 0);
+                document.getElementById('stat-pages').textContent = totalPages;
+                
+                const completed = jobs.filter(j => j.status === 'completed').length;
+                const rate = jobs.length > 0 ? ((completed / jobs.length) * 100).toFixed(0) + '%' : '—';
+                document.getElementById('stat-rate').textContent = rate;
+                
+                // Show active jobs
+                const activeJobs = jobs.filter(j => j.status === 'running');
+                const container = document.getElementById('active-jobs-list');
+                
+                if (activeJobs.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i data-lucide="inbox" width="64" height="64"></i>
+                            </div>
+                            <h3 class="empty-title">No active jobs</h3>
+                            <p>Create a new job to start scraping emails</p>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = activeJobs.map(job => createJobCard(job, true)).join('');
+                }
+                
+                lucide.createIcons();
+            } catch (err) {
+                console.error('Failed to load dashboard:', err);
+            }
+        }
+
+        // New Job Form
+        function loadNewJobForm() {
+            document.getElementById('page-title').textContent = 'Create New Job';
+            document.getElementById('page-subtitle').textContent = 'Configure and start a new scraping job';
+
+            const html = `
+                <div class="card">
+                    <form onsubmit="submitJob(event)">
+                        <div class="form-group">
+                            <label>
+                                <i data-lucide="search" width="16" height="16" style="display:inline; margin-right:4px;"></i>
+                                Search Query *
+                            </label>
+                            <input type="text" id="query" placeholder="e.g., dental clinics london" required>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Search Engine</label>
+                                <select id="engine">
+                                    <option value="google">Google (Faster)</option>
+                                    <option value="ddg">DuckDuckGo (No blocks)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Crawl Backend</label>
+                                <select id="backend">
+                                    <option value="scrapling">Scrapling (Fast)</option>
+                                    <option value="playwright">Playwright (JS-heavy)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" id="expand-locations">
+                            <label for="expand-locations">
+                                <i data-lucide="map-pin" width="16" height="16" style="display:inline; margin-right:4px;"></i>
+                                Expand across locations
+                            </label>
+                        </div>
+
+                        <div class="form-group hidden" id="locations-group">
+                            <label>Cities (comma-separated)</label>
+                            <input type="text" id="locations" placeholder="london, manchester, birmingham">
+                        </div>
+
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" id="check-mx" checked>
+                            <label for="check-mx">
+                                <i data-lucide="shield-check" width="16" height="16" style="display:inline; margin-right:4px;"></i>
+                                Validate MX records (slower but accurate)
+                            </label>
+                        </div>
+
+                        <div class="btn-group" style="margin-top: 24px;">
+                            <button type="submit" class="btn btn-primary" id="submit-btn" style="flex:1;">
+                                <i data-lucide="play" width="16" height="16"></i>
+                                Start Job
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title" style="margin-bottom: 16px;">Quick Start Templates</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                        <button class="btn btn-secondary" onclick="fillQuery('dental clinics london')">
+                            <i data-lucide="stethoscope" width="16" height="16"></i>
+                            Dental Clinics
+                        </button>
+                        <button class="btn btn-secondary" onclick="fillQuery('law firms new york')">
+                            <i data-lucide="scale" width="16" height="16"></i>
+                            Law Firms
+                        </button>
+                        <button class="btn btn-secondary" onclick="fillQuery('restaurants tokyo')">
+                            <i data-lucide="utensils" width="16" height="16"></i>
+                            Restaurants
+                        </button>
+                        <button class="btn btn-secondary" onclick="fillQuery('saas companies')">
+                            <i data-lucide="code" width="16" height="16"></i>
+                            SaaS Companies
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('main-content').innerHTML = html;
+            
+            document.getElementById('expand-locations').addEventListener('change', (e) => {
+                document.getElementById('locations-group').classList.toggle('hidden');
+            });
+            
+            lucide.createIcons();
+        }
+
+        function fillQuery(query) {
+            document.getElementById('query').value = query;
+        }
+
+        async function submitJob(e) {
+            e.preventDefault();
+            
+            const data = {
+                query: document.getElementById('query').value,
+                engine: document.getElementById('engine').value,
+                backend: document.getElementById('backend').value,
+                expand_locations: document.getElementById('expand-locations').checked,
+                locations: document.getElementById('locations').value.split(',').map(s => s.trim()).filter(s => s),
+                check_mx: document.getElementById('check-mx').checked,
+            };
+
+            const btn = document.getElementById('submit-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner"></div> Starting...';
+
+            try {
+                const res = await fetch('/api/create-job', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!res.ok) throw new Error('Failed to create job');
+                
+                const job = await res.json();
+                currentJob = job.id;
+                showJobDetails(job.id);
+            } catch (err) {
+                alert('Error: ' + err.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="play"></i> Start Job';
+                lucide.createIcons();
+            }
+        }
+
+        // Job Details/Monitoring
+        async function showJobDetails(jobId) {
+            currentJob = jobId;
+            navigateTo('dashboard');
+            
+            try {
+                const res = await fetch(`/api/job/${jobId}`);
+                const job = await res.json();
+                
+                document.getElementById('page-title').textContent = job.query;
+                document.getElementById('page-subtitle').textContent = `Job ID: ${job.id}`;
+
+                const html = `
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                            <div>
+                                <span class="badge ${job.status}">${job.status}</span>
+                            </div>
+                            <div class="btn-group">
+                                <button class="btn btn-success" onclick="downloadResults('${job.id}')" id="download-btn" ${job.status !== 'completed' ? 'disabled' : ''}>
+                                    <i data-lucide="download" width="16" height="16"></i>
+                                    Download CSV
+                                </button>
+                                <button class="btn btn-danger" onclick="stopJob('${job.id}')" id="stop-btn" ${job.status !== 'running' ? 'disabled' : ''}>
+                                    <i data-lucide="square" width="16" height="16"></i>
+                                    Stop
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-header">
+                                    <div>
+                                        <div class="stat-label">Pages Crawled</div>
+                                        <div class="stat-value" id="job-pages">0</div>
+                                    </div>
+                                    <div class="stat-icon blue">
+                                        <i data-lucide="file-text" width="20" height="20"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="stat-card">
+                                <div class="stat-header">
+                                    <div>
+                                        <div class="stat-label">New Emails</div>
+                                        <div class="stat-value" id="job-new">0</div>
+                                    </div>
+                                    <div class="stat-icon green">
+                                        <i data-lucide="mail" width="20" height="20"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="stat-card">
+                                <div class="stat-header">
+                                    <div>
+                                        <div class="stat-label">Total Emails</div>
+                                        <div class="stat-value" id="job-total">0</div>
+                                    </div>
+                                    <div class="stat-icon purple">
+                                        <i data-lucide="database" width="20" height="20"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="stat-card">
+                                <div class="stat-header">
+                                    <div>
+                                        <div class="stat-label">Rate</div>
+                                        <div class="stat-value" id="job-rate">—</div>
+                                    </div>
+                                    <div class="stat-icon yellow">
+                                        <i data-lucide="zap" width="20" height="20"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin: 24px 0;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px;">
+                                <span class="text-secondary">Engine: <strong>${job.engine}</strong></span>
+                                <span class="text-secondary">Backend: <strong>${job.backend}</strong></span>
+                                <span class="text-secondary">Elapsed: <strong id="job-elapsed">0s</strong></span>
+                                <span class="text-secondary">Errors: <strong id="job-errors">0</strong></span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="job-progress" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <div id="last-email" class="hidden" style="padding: 16px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; margin-bottom: 16px;">
+                            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">Last Email Found:</div>
+                            <code id="last-email-text" style="color: var(--success); font-size: 14px;"></code>
+                        </div>
+
+                        <div class="activity-log" id="activity-log">
+                            <div class="log-entry log-info">
+                                <span class="log-time">${new Date().toLocaleTimeString()}</span>
+                                <span>Job started...</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('main-content').innerHTML = html;
+                lucide.createIcons();
+                
+                if (job.status === 'running') {
+                    startPolling(jobId);
+                } else {
+                    updateJobStats(job);
+                }
+            } catch (err) {
+                console.error('Failed to load job:', err);
+            }
+        }
+
+        function startPolling(jobId) {
+            clearInterval(pollInterval);
+            const startTime = Date.now();
+            
+            pollInterval = setInterval(async () => {
+                try {
+                    // Fetch job stats
+                    const res = await fetch(`/api/job/${jobId}`);
+                    const job = await res.json();
+                    
+                    updateJobStats(job);
+                    
+                    // Fetch logs
+                    const logsRes = await fetch(`/api/job/${jobId}/logs`);
+                    const logsData = await logsRes.json();
+                    const logs = logsData.logs || [];
+                    
+                    // Update logs display
+                    const logContainer = document.getElementById('activity-log');
+                    if (logContainer && logs.length > 0) {
+                        logContainer.innerHTML = logs.slice(-15).map(log => {
+                            const isError = log.includes('ERROR') || log.includes('✗');
+                            const isSuccess = log.includes('Found:') || log.includes('✓');
+                            const className = isError ? 'log-error' : (isSuccess ? 'log-success' : 'log-info');
+                            
+                            const parts = log.split('|');
+                            const time = parts[0] || '';
+                            const message = parts.slice(1).join('|') || log;
+                            
+                            return `
+                                <div class="log-entry ${className}">
+                                    <span class="log-time">${time.trim()}</span>
+                                    <span>${message.trim()}</span>
+                                </div>
+                            `;
+                        }).join('');
+                        logContainer.scrollTop = logContainer.scrollHeight;
+                    }
+                    
+                    // Update elapsed time
+                    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                    const mins = Math.floor(elapsed / 60);
+                    const secs = elapsed % 60;
+                    document.getElementById('job-elapsed').textContent = 
+                        mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+                    
+                    // Update status badge
+                    const badge = document.querySelector('.badge');
+                    badge.className = `badge ${job.status}`;
+                    badge.textContent = job.status;
+                    
+                    // Stop polling if job is done
+                    if (job.status !== 'running') {
+                        clearInterval(pollInterval);
+                        document.getElementById('stop-btn').disabled = true;
+                        document.getElementById('download-btn').disabled = false;
+                        
+                        const log = document.getElementById('activity-log');
+                        const entry = document.createElement('div');
+                        entry.className = `log-entry ${job.status === 'completed' ? 'log-success' : 'log-error'}`;
+                        entry.innerHTML = `
+                            <span class="log-time">${new Date().toLocaleTimeString()}</span>
+                            <span>Job ${job.status}</span>
+                        `;
+                        log.appendChild(entry);
+                        log.scrollTop = log.scrollHeight;
+                    }
+                } catch (err) {
+                    console.error('Polling error:', err);
+                }
+            }, 1000);
+        }
+
+        function updateJobStats(job) {
+            const stats = job.stats || {};
+            
+            document.getElementById('job-pages').textContent = stats.pages_crawled || 0;
+            document.getElementById('job-new').textContent = stats.new_emails || 0;
+            document.getElementById('job-total').textContent = stats.total_emails || 0;
+            document.getElementById('job-rate').textContent = 
+                stats.rate_per_min > 0 ? stats.rate_per_min.toFixed(1) + '/min' : '—';
+            document.getElementById('job-errors').textContent = stats.errors || 0;
+            
+            if (stats.last_email) {
+                document.getElementById('last-email').classList.remove('hidden');
+                document.getElementById('last-email-text').textContent = stats.last_email;
+            }
+            
+            // Update progress bar (estimate based on pages crawled)
+            const progress = Math.min((stats.pages_crawled || 0) / 100 * 100, 100);
+            document.getElementById('job-progress').style.width = progress + '%';
+        }
+
+        async function stopJob(jobId) {
+            try {
+                await fetch(`/api/stop-job/${jobId}`, { method: 'POST' });
+                clearInterval(pollInterval);
+            } catch (err) {
+                alert('Error stopping job: ' + err.message);
+            }
+        }
+
+        async function downloadResults(jobId) {
+            try {
+                const res = await fetch(`/api/download/${jobId}`);
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `emails_${jobId}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+            } catch (err) {
+                alert('Error downloading results: ' + err.message);
+            }
+        }
+
+        // History Page
+        function loadHistory() {
+            document.getElementById('page-title').textContent = 'Job History';
+            document.getElementById('page-subtitle').textContent = 'View and manage all your scraping jobs';
+
+            const html = `
+                <div style="margin-bottom: 24px;">
+                    <button class="btn btn-secondary" onclick="loadHistory()">
+                        <i data-lucide="refresh-cw" width="16" height="16"></i>
+                        Refresh
+                    </button>
+                </div>
+                <div id="jobs-list"></div>
+            `;
+
+            document.getElementById('main-content').innerHTML = html;
+            lucide.createIcons();
+            fetchHistory();
+        }
+
+        async function fetchHistory() {
+            try {
+                const res = await fetch('/api/jobs');
+                const data = await res.json();
+                const jobs = data.jobs || [];
+                
+                const container = document.getElementById('jobs-list');
+                
+                if (jobs.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i data-lucide="inbox" width="64" height="64"></i>
+                            </div>
+                            <h3 class="empty-title">No jobs yet</h3>
+                            <p>Create your first job to get started</p>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = jobs.map(job => createJobCard(job)).join('');
+                }
+                
+                lucide.createIcons();
+            } catch (err) {
+                console.error('Failed to load history:', err);
+            }
+        }
+
+        function createJobCard(job, isActive = false) {
+            return `
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+                        <div>
+                            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">${job.query}</h3>
+                            <div style="font-size: 13px; color: var(--text-tertiary);">
+                                ID: ${job.id} • Created: ${new Date(job.created_at).toLocaleString()}
+                            </div>
+                        </div>
+                        <span class="badge ${job.status}">${job.status}</span>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 16px;">
+                        <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 6px;">
+                            <div style="font-size: 11px; color: var(--text-tertiary); margin-bottom: 4px;">ENGINE</div>
+                            <div style="font-size: 14px; font-weight: 600;">${job.engine}</div>
+                        </div>
+                        <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 6px;">
+                            <div style="font-size: 11px; color: var(--text-tertiary); margin-bottom: 4px;">BACKEND</div>
+                            <div style="font-size: 14px; font-weight: 600;">${job.backend}</div>
+                        </div>
+                        ${job.stats ? `
+                        <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 6px;">
+                            <div style="font-size: 11px; color: var(--text-tertiary); margin-bottom: 4px;">PAGES</div>
+                            <div style="font-size: 14px; font-weight: 600; color: var(--info);">${job.stats.pages_crawled || 0}</div>
+                        </div>
+                        <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 6px;">
+                            <div style="font-size: 11px; color: var(--text-tertiary); margin-bottom: 4px;">EMAILS</div>
+                            <div style="font-size: 14px; font-weight: 600; color: var(--success);">${job.stats.new_emails || 0}</div>
+                        </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="btn-group">
+                        ${job.status === 'completed' ? `
+                            <button class="btn btn-success" onclick="downloadResults('${job.id}')">
+                                <i data-lucide="download" width="16" height="16"></i>
+                                Download
+                            </button>
+                        ` : ''}
+                        <button class="btn btn-secondary" onclick="showJobDetails('${job.id}')">
+                            <i data-lucide="eye" width="16" height="16"></i>
+                            View Details
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Settings Page
+        function loadSettings() {
+            document.getElementById('page-title').textContent = 'Settings';
+            document.getElementById('page-subtitle').textContent = 'Configure your scraper';
+
+            const html = `
+                <div class="card">
+                    <h3 class="card-title" style="margin-bottom: 20px;">API Configuration</h3>
+                    
+                    <div class="form-group">
+                        <label>API Endpoint</label>
+                        <input type="text" value="http://localhost:8000" disabled>
+                        <p style="font-size: 13px; color: var(--text-secondary); margin-top: 8px;">
+                            The FastAPI backend must be running on this address
+                        </p>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Flask Frontend</label>
+                        <input type="text" value="http://localhost:5000" disabled>
+                        <p style="font-size: 13px; color: var(--text-secondary); margin-top: 8px;">
+                            This dashboard is served from Flask
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title" style="margin-bottom: 20px;">About</h3>
+                    <p style="color: var(--text-secondary); line-height: 1.6;">
+                        Email Scraper is a powerful tool for extracting business emails at scale. 
+                        It uses Google Maps, DuckDuckGo, and Google Search to find businesses, 
+                        then crawls their websites to extract contact information.
+                    </p>
+                    <div style="margin-top: 20px; padding: 16px; background: var(--bg-tertiary); border-radius: 8px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span style="color: var(--text-secondary);">Version</span>
+                            <strong>1.0.0</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span style="color: var(--text-secondary);">Backend</span>
+                            <strong>FastAPI + Flask</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: var(--text-secondary);">Crawler</span>
+                            <strong>Scrapling / Playwright</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title" style="margin-bottom: 20px;">Documentation</h3>
+                    <div style="display: grid; gap: 12px;">
+                        <a href="#" class="btn btn-secondary" style="text-decoration: none; justify-content: space-between;">
+                            <span>
+                                <i data-lucide="book-open" width="16" height="16"></i>
+                                Getting Started Guide
+                            </span>
+                            <i data-lucide="external-link" width="16" height="16"></i>
+                        </a>
+                        <a href="#" class="btn btn-secondary" style="text-decoration: none; justify-content: space-between;">
+                            <span>
+                                <i data-lucide="code" width="16" height="16"></i>
+                                API Documentation
+                            </span>
+                            <i data-lucide="external-link" width="16" height="16"></i>
+                        </a>
+                        <a href="#" class="btn btn-secondary" style="text-decoration: none; justify-content: space-between;">
+                            <span>
+                                <i data-lucide="github" width="16" height="16"></i>
+                                GitHub Repository
+                            </span>
+                            <i data-lucide="external-link" width="16" height="16"></i>
+                        </a>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('main-content').innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // Health Check
+        async function checkHealth() {
+            try {
+                const res = await fetch('/api/health');
+                const data = await res.json();
+                
+                if (data.status === 'ok') {
+                    alert('✓ Backend is healthy and running');
+                } else {
+                    alert('⚠ Backend is unreachable');
+                }
+            } catch (err) {
+                alert('✗ Backend is not running. Start it with:\npython server.py');
+            }
+        }
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', () => {
+            loadDashboard();
+            
+            // Check backend health on load
+            fetch('/api/health').catch(() => {
+                console.warn('Backend not reachable - some features may not work');
+            });
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            clearInterval(pollInterval);
+        });
+    </script>
+</body>
+</html>

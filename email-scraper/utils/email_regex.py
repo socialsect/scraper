@@ -21,7 +21,7 @@ BLACKLIST_PATTERNS = [
     r'sample\.com$',
     r'email\.com$',
     r'address\.com$',
-    r'domain\.com$',
+    r'^[^@]+@domain\.com$',
     r'yoursite\.com$',
     r'company\.com$',
     r'placeholder',

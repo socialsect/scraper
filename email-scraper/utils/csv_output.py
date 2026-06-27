@@ -10,7 +10,24 @@ from contextlib import contextmanager
 from datetime import datetime
 
 QUERY_MARKER_PREFIX = "#QUERY"
-CSV_COLUMNS = ["email", "source"]
+
+# All columns written to the emails CSV.
+# New columns are appended after email/source so old CSVs stay readable.
+CSV_COLUMNS = [
+    "email",
+    "source",
+    "phone",
+    "linkedin",
+    "twitter",
+    "instagram",
+    "facebook",
+    "youtube",
+    "mx_valid",
+    "confidence",
+]
+
+# Columns used for deduplication / existence checks
+_IDENTITY_COL = "email"
 
 
 @contextmanager
@@ -115,13 +132,29 @@ def write_query_marker(path: str, query_label: str) -> None:
     with _file_lock(path):
         with open(path, "a", newline="", encoding="utf-8") as f:
             csv.writer(f).writerow(marker)
-    print(f"\n--- CSV session: {query_label} ({timestamp}) ---")
 
 
-def append_email_row(path: str, email: str, source: str, known_emails: set[str]) -> bool:
+def append_email_row(
+    path: str,
+    email: str,
+    source: str,
+    known_emails: set[str],
+    *,
+    phone: str = "",
+    linkedin: str = "",
+    twitter: str = "",
+    instagram: str = "",
+    facebook: str = "",
+    youtube: str = "",
+    mx_valid: str = "",
+    confidence: str = "",
+) -> bool:
     """
     Append one email row under a file lock.
     Returns True if a new row was written.
+
+    Extra enrichment fields (phone, socials, mx_valid, confidence) are optional —
+    pass empty string to leave the column blank.
     """
     email = email.lower().strip()
     if not email or email in known_emails:
@@ -129,13 +162,17 @@ def append_email_row(path: str, email: str, source: str, known_emails: set[str])
 
     ensure_csv_header(path)
     with _file_lock(path):
-        # Re-check against file in case another terminal wrote it first.
+        # Re-check against file in case another process wrote it first.
         on_disk = load_existing_emails(path)
         if email in on_disk:
             known_emails.add(email)
             return False
         with open(path, "a", newline="", encoding="utf-8") as f:
-            csv.writer(f).writerow([email, source])
+            csv.writer(f).writerow([
+                email, source,
+                phone, linkedin, twitter, instagram, facebook, youtube,
+                mx_valid, confidence,
+            ])
 
     known_emails.add(email)
     return True

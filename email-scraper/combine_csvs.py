@@ -2,7 +2,7 @@ import csv
 import glob
 import os
 
-from utils.csv_output import is_query_marker_row
+from utils.csv_output import CSV_COLUMNS, is_query_marker_row
 from utils.dedup import deduplicate_items
 
 OUTPUT_DIR = "output"
@@ -34,14 +34,22 @@ def combine_csvs():
                 email = (row.get("email") or "").strip().lower()
                 if not email or is_query_marker_row(row):
                     continue
-                    all_items.append(
-                        {"email": email, "source": (row.get("source") or "").strip()}
-                    )
+                all_items.append({
+                    "email": email,
+                    "source": (row.get("source") or "").strip(),
+                    "phone": (row.get("phone") or "").strip(),
+                    "linkedin": (row.get("linkedin") or "").strip(),
+                    "twitter": (row.get("twitter") or "").strip(),
+                    "instagram": (row.get("instagram") or "").strip(),
+                    "facebook": (row.get("facebook") or "").strip(),
+                    "youtube": (row.get("youtube") or "").strip(),
+                    "mx_valid": (row.get("mx_valid") or "").strip(),
+                })
 
     final_items = deduplicate_items(all_items)
 
     with open(BATCH_FILE, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=["email", "source"])
+        writer = csv.DictWriter(f, fieldnames=CSV_COLUMNS)
         writer.writeheader()
         writer.writerows(final_items)
 
